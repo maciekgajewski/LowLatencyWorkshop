@@ -103,7 +103,7 @@ void CheckText(benchmark::State& state)
 
 BENCHMARK_TEMPLATE(InDictionary, v0::Dictionary);
 BENCHMARK_TEMPLATE(NotInDictionary, v0::Dictionary);
-BENCHMARK_TEMPLATE(CheckText, v0::Dictionary);
+//BENCHMARK_TEMPLATE(CheckText, v0::Dictionary);
 
 int main(int argc, char** argv)
 {
@@ -118,4 +118,3 @@ int main(int argc, char** argv)
 		return 1;
 	benchmark::RunSpecifiedBenchmarks();
 }
-
