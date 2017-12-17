@@ -1,8 +1,18 @@
 #include "util.hh"
 #include "../spellchecker/tokenizer.hh"
+
 #include "../v0/dictionary.hh"
+#include "../v1/dictionary.hh"
+#include "../v2/dictionary.hh"
+#include "../v3/dictionary.hh"
+#include "../v4/dictionary.hh"
 
 #include <benchmark/benchmark.h>
+
+// instrumentation
+#include <papipp.h>
+#include <valgrind/callgrind.h>
+
 
 #include <iostream>
 #include <vector>
@@ -46,12 +56,29 @@ void InDictionary(benchmark::State& state)
 	DictType dict(wordsIn );
 	bool allFound = true;
 
+	// papi - perf counters
+	//papi::event_set<PAPI_TOT_INS, PAPI_TOT_CYC, PAPI_BR_MSP, PAPI_L1_DCM> events;
+	//events.start_counters();
+
+	// enable Callgrind instrumentation
+	//CALLGRIND_START_INSTRUMENTATION;
+
+
 	for(auto _ : state)
 	{
 		const std::string& word = wordsIn[idx];
 		idx = (idx+1) % wordsIn.size();
 		benchmark::DoNotOptimize(allFound &= dict.in_dictionary(word));
 	}
+
+	//CALLGRIND_STOP_INSTRUMENTATION; // vcallgrind
+
+	//events.stop_counters();
+	//std::cout << events.get<PAPI_TOT_INS>().counter()/double(events.get<PAPI_TOT_CYC>().counter()) << " instr per cycle\n";
+	//std::cout << events.get<PAPI_TOT_INS>().counter()/double(state.iterations()) << " instructions\n";
+	//std::cout << events.get<PAPI_L1_DCM>().counter()/double(state.iterations()) << " l1 cache misses\n"
+	//		  << events.get<PAPI_BR_MSP>().counter()/double(state.iterations()) << " branch misses" << std::endl;
+	//std::cout << "iterations: " << state.iterations() << std::endl;
 
 	if (!allFound)
 		std::cout << "InDictionary consistency check failed" << std::endl;
@@ -104,6 +131,19 @@ void CheckText(benchmark::State& state)
 BENCHMARK_TEMPLATE(InDictionary, v0::Dictionary);
 BENCHMARK_TEMPLATE(NotInDictionary, v0::Dictionary);
 //BENCHMARK_TEMPLATE(CheckText, v0::Dictionary);
+
+BENCHMARK_TEMPLATE(InDictionary, v1::Dictionary);
+BENCHMARK_TEMPLATE(NotInDictionary, v1::Dictionary);
+
+BENCHMARK_TEMPLATE(InDictionary, v2::Dictionary);
+BENCHMARK_TEMPLATE(NotInDictionary, v2::Dictionary);
+
+BENCHMARK_TEMPLATE(InDictionary, v3::Dictionary);
+BENCHMARK_TEMPLATE(NotInDictionary, v3::Dictionary);
+
+BENCHMARK_TEMPLATE(InDictionary, v4::Dictionary);
+BENCHMARK_TEMPLATE(NotInDictionary, v4::Dictionary);
+
 
 int main(int argc, char** argv)
 {
